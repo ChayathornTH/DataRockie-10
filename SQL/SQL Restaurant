@@ -1,0 +1,133 @@
+-- https://replit.com/@chayathornthian/DSB10SQLRestaurantBabe
+
+/* Write sql quries at least 3 queries
+- with clause / subquery
+    --
+- aggregate function & group by 
+    -- agg order group by food type
+- where ..
+*/
+
+.mode table
+.header on
+
+.read menu.sql 
+.read ingredient.sql
+.read recipe.sql
+.read orders.sql
+.read customer.sql
+.read member.sql
+.read staff.sql
+.read transactions.sql
+
+/*
+select * from menu;
+select * from ingredient;
+select * from recipe;
+select * from orders;
+select * from customer;
+select * from member;
+select * from staff;
+select * from transactions;
+*/
+
+-- เลือกชื่อเมนูที่มีวัตถุดิบเป็น seafood
+    -- where clause and join table
+    
+select menu.menu_name,ingredient.ingredient_name,ingredient.ingredient_type
+from menu
+inner join recipe on menu.menu_id = recipe.menu_id
+inner join ingredient on ingredient.ingredient_id = recipe.ingredient_id
+where ingredient.ingredient_type = 'Seafood';
+
+    -- CTE
+with type_seafood as(
+    select *
+    from ingredient
+    where ingredient_type = 'Seafood'
+)
+select menu.menu_name,type_seafood.ingredient_name,type_seafood.ingredient_type
+from menu
+inner join recipe on menu.menu_id = recipe.menu_id
+inner join type_seafood on type_seafood.ingredient_id = recipe.ingredient_id;
+
+-------------------
+
+-- Aggregate Function
+select menu_type,count(menu_id) as menu_count
+from menu
+group by menu_type;
+
+-------
+    
+with join_trans_menu as(
+    select *
+    from menu 
+    join orders on menu.menu_id = orders.menu_id
+    join transactions on orders.order_id = transactions.order_id
+)
+    
+select 
+    transaction_id,
+    sum(quantity*menu_price) as total_price
+from join_trans_menu
+group by transaction_id;
+
+-------
+
+with join_trans_menu as(
+    select *
+    from menu 
+    join orders on menu.menu_id = orders.menu_id
+    join transactions on orders.order_id = transactions.order_id
+)
+    
+select 
+    transaction_id,
+    order_id,
+    menu_name,
+    menu_price,
+    quantity,
+    menu_price*quantity as total_price
+from join_trans_menu
+where transaction_id = 1;
+
+-------
+
+--พนักงานที่รับออเดอร์ยอดขายสูงสุด
+with mots as(
+    select *,staff.staff_firstname || ' ' || staff.staff_lastname as staff_name
+    from menu
+    join orders on menu.menu_id = orders.menu_id
+    join transactions on orders.order_id = transactions.order_id
+    join staff on transactions.staff_id = staff.staff_id
+)
+
+select 
+    staff_name,
+    sum(quantity*menu_price) as  sales
+from mots
+group by staff_name
+order by sales desc
+;
+
+-------
+
+-- 3 Top Spender
+with motcm as(
+    select *
+    from menu
+    join orders on menu.menu_id = orders.menu_id
+    join transactions on orders.order_id = transactions.order_id
+    join customer on transactions.customer_id = customer.customer_id
+    join member on customer.member = member.member_id
+)
+
+select 
+    customer_id ,
+    customer_name,
+    sum(quantity*menu_price) as total_price
+from motcm
+group by customer_id 
+order by total_price desc
+limit 3;
