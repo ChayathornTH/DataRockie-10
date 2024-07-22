@@ -31,7 +31,7 @@ select * from staff;
 select * from transactions;
 */
 
--- เลือกชื่อเมนูที่มีวัตถุดิบเป็น seafood
+-- Choose Menu that ingredient type is seafood
     -- where clause and join table
     
 select menu.menu_name,ingredient.ingredient_name,ingredient.ingredient_type
@@ -94,7 +94,7 @@ where transaction_id = 1;
 
 -------
 
---พนักงานที่รับออเดอร์ยอดขายสูงสุด
+--most sales staff
 with mots as(
     select *,staff.staff_firstname || ' ' || staff.staff_lastname as staff_name
     from menu
